@@ -244,17 +244,21 @@ matched %>%
 
 library(ggplot2)
 
+RESULTS_DIR <- "results"
+dir.create(RESULTS_DIR, showWarnings = FALSE)
+
 # Graph 1: Population vs. Cost of Living Index across the matched cities
-ggplot(matched, aes(x = population, y = col_index)) +
+p1 <- ggplot(matched, aes(x = population, y = col_index)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE) +
   scale_x_log10(labels = scales::comma) +
   labs(title = "Population vs. Cost of Living Index",
        x = "Population (log scale)", y = "Cost of Living Index (NYC = 100)")
+ggsave(file.path(RESULTS_DIR, "population_vs_cost.png"), p1, width = 8, height = 5, dpi = 150)
 
 # Graph 2: Top 10 best-value cities (highest purchasing power relative
 # to cost of living -- your money goes furthest here)
-matched %>%
+p2 <- matched %>%
   slice_max(value_score, n = 10) %>%
   ggplot(aes(x = reorder(city, value_score), y = value_score)) +
   geom_col(fill = "steelblue") +
@@ -262,14 +266,18 @@ matched %>%
   labs(title = "Top 10 Best-Value Large Cities",
        subtitle = "Local Purchasing Power Index / Cost of Living Index",
        x = NULL, y = "Value Score")
+ggsave(file.path(RESULTS_DIR, "top10_best_value.png"), p2, width = 8, height = 5, dpi = 150)
 
 # Graph 3: Top 10 worst-value cities (lowest purchasing power relative
-# to cost of living -- your money goes least far here)
-matched %>%
+# to cost of living -- your money goes least far here). Sort key is
+# reversed vs. the other charts so the WORST city (lowest value_score)
+# appears first, at the top of the chart.
+p3 <- matched %>%
   slice_min(value_score, n = 10) %>%
-  ggplot(aes(x = reorder(city, value_score), y = value_score)) +
+  ggplot(aes(x = reorder(city, -value_score), y = value_score)) +
   geom_col(fill = "firebrick") +
   coord_flip() +
   labs(title = "Top 10 Worst-Value Large Cities",
        subtitle = "Local Purchasing Power Index / Cost of Living Index",
        x = NULL, y = "Value Score")
+ggsave(file.path(RESULTS_DIR, "top10_worst_value.png"), p3, width = 8, height = 5, dpi = 150)
